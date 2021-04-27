@@ -12,8 +12,12 @@ def main():
     address_sets = []
     applications = []
     application_set = []
+    policies = []
     
     application_in_set = ''
+    sub_match_source_addr = ''
+    sub_match_dest_addr = ''
+    sub_match_app = ''
     term_label = ''
     addresses_in_set = ''
     source_port = ''
@@ -62,7 +66,38 @@ def main():
                                     addresses_in_set = ''
                                     df2 = pd.DataFrame(address_sets, columns=['Name','Description','Addresses'])
                                     df2.to_excel(writer, index=False, sheet_name='Address-sets')
-                            
+                        
+                        # TODO: Fix this part method
+                        if sec_item.tag == 'policies':
+                            print("Reading policies in policies")
+                            for policy in sec_item:
+                                if policy.tag == 'policy':
+                                    for policy_item in policy:
+                                        if policy_item.tag == 'from-zone-name':
+                                            from_zone_name = policy_item.text
+                                        if policy_item.tag == 'to-zone-name':
+                                            to_zone_name = policy_item.text
+                                        
+                                        if policy_item.tag == 'policy':
+                                            for subpolicy in policy_item:
+                                                if subpolicy.tag == 'name':
+                                                    subpol_name = subpolicy.text
+                                                if subpolicy.tag == 'match':
+                                                    for match in subpolicy:
+                                                        if match.tag == 'source-address':
+                                                            sub_match_source_addr = sub_match_source_addr + match.text + '\n'
+                                                        if match.tag == 'destination-address':
+                                                            sub_match_dest_addr = sub_match_dest_addr + match.text + '\n'
+                                                        if match.tag == 'application':
+                                                            sub_match_app = sub_match_app + match.text + '\n'
+                                            policies.append([from_zone_name] + [to_zone_name] + [subpol_name] + [sub_match_source_addr] + [sub_match_dest_addr] + [sub_match_app])
+                                            sub_match_app = ''
+                                            sub_match_dest_addr = ''
+                                            sub_match_source_addr = ''
+
+                                    # When collected all policies, save it to excel                                  
+                                    df3 = pd.DataFrame(policies, columns=['from-zone-name','to-zone-name','name','source-address','destination-address','application'])
+                                    df3.to_excel(writer, index=False, sheet_name='Policies')
 
                 if conf_item.tag == 'applications':
                     print("Reading applications and applications-sets in configuration")
@@ -98,8 +133,8 @@ def main():
                             term_label_dest_port = ''
                             term_label_protocol = ''
 
-                            df3 = pd.DataFrame(applications, columns=['Name','Source port','Destination port','Protocol','Terms'])
-                            df3.to_excel(writer, index=False, sheet_name='Applications')
+                            df4 = pd.DataFrame(applications, columns=['Name','Source port','Destination port','Protocol','Destination ports/protocol'])
+                            df4.to_excel(writer, index=False, sheet_name='Applications')
 
                         if application.tag == 'application-set':
                             for app_set_item in application:
@@ -110,8 +145,8 @@ def main():
                             application_set.append([name] + [application_in_set])
                             application_in_set = ''
                             
-                            df4 = pd.DataFrame(application_set, columns=['Name','Applications'])
-                            df4.to_excel(writer, index=False, sheet_name='Application-sets')
+                            df5 = pd.DataFrame(application_set, columns=['Name','Applications'])
+                            df5.to_excel(writer, index=False, sheet_name='Application-sets')
     writer.save()
 if __name__ == '__main__':
     main()
