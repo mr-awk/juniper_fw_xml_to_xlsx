@@ -9,11 +9,6 @@ def get_text_object(element):
     return element.text if element.text is not None else ''
 
 
-def get_tag_object(element, tag):
-    """Helper to safely get a child element by tag."""
-    return element.find(tag)
-
-
 def get_address(address_element):
     """Extract address information from an address element.
     
@@ -64,7 +59,7 @@ def get_address_set(address_set_element):
 def get_term(term_element):
     """Extract term information from a term element.
     
-    Returns a formatted string: 'dest_port/protocol\\n'
+    Returns a formatted string: 'dest_port/protocol\n'
     """
     # Initialize all variables to empty strings
     term_label_dest_port = ''
@@ -346,12 +341,6 @@ def parse_args(argv):
             inputfile = arg
         elif opt in ("-o", "--output"):
             outputfile = arg
-    
-    # Validate values after parsing
-    if not inputfile:
-        inputfile = 'srx.xml'
-    if not outputfile:
-        outputfile = 'test.xlsx'
     
     return inputfile, outputfile
 
